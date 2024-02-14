@@ -1,8 +1,3 @@
-spokeClusters:
-- spoke-1
-
-addonInstallNamespace: open-cluster-management-agent-addon
-
 metrics:
   enabled: true
 
@@ -20,6 +15,4 @@ tracing:
   enabled: false
   
   outputs:
-    - type: jaeger
-    - type: otlp
-      url: https://otlp.app 
+    - name: otlphttp
