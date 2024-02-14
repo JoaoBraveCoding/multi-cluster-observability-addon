@@ -1,6 +1,7 @@
 # list of spoke clusters
 spokeClusters:
-  - cluster1
+  - spoke-1
+
 metrics:
   enabled: false
 
