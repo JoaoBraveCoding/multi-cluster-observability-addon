@@ -161,9 +161,9 @@ func runController(ctx context.Context, kubeConfig *rest.Config) error {
 			utils.AddOnDeploymentConfigGVR,
 		).
 		WithGetValuesFuncs(addonConfigValuesFn, addonhelm.GetValuesFunc(k8sClient)).
+		WithAgentHealthProber(addon.AgentHealthProber()).
 		WithAgentRegistrationOption(registrationOption).
 		WithScheme(scheme.Scheme).
-		WithAgentHealthProber(addon.AgentHealthProber()).
 		BuildHelmAgentAddon()
 	if err != nil {
 		klog.Errorf("failed to build agent %v", err)
