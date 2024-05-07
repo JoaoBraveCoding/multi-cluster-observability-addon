@@ -62,7 +62,7 @@ func GetValuesFunc(k8s client.Client) addonfactory.GetValuesFunc {
 		}
 
 		if !opts.LoggingDisabled {
-			loggingOpts, err := lhandlers.BuildOptions(k8s, addon, aodc)
+			loggingOpts, err := lhandlers.BuildOptions(k8s, cluster, addon, aodc)
 			if err != nil {
 				return nil, err
 			}

@@ -38,7 +38,7 @@ func fakeGetValues(k8s client.Client) addonfactory.GetValuesFunc {
 		cluster *clusterv1.ManagedCluster,
 		addon *addonapiv1alpha1.ManagedClusterAddOn,
 	) (addonfactory.Values, error) {
-		opts, err := handlers.BuildOptions(k8s, addon, nil)
+		opts, err := handlers.BuildOptions(k8s, cluster, addon, nil)
 		if err != nil {
 			return nil, err
 		}

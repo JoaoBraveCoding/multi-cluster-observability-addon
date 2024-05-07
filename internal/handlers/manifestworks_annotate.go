@@ -11,8 +11,10 @@ import (
 	"github.com/rhobs/multicluster-observability-addon/internal/manifests"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"
 	addonapiv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	workv1 "open-cluster-management.io/api/work/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,7 +51,19 @@ func UpdateAnnotationOnManifestWorks(ctx context.Context, log logr.Logger, req c
 		return nil
 	}
 
-	opts, err := lhandlers.BuildOptions(k, &addon, nil)
+	var cluster clusterv1.ManagedCluster
+	if err := k.Get(ctx, types.NamespacedName{
+		Name: req.Name,
+	}, &cluster); err != nil {
+		if apierrors.IsNotFound(err) {
+			// maybe the user deleted it before we could react? Either way this isn't an issue
+			ll.Error(err, "could not find matching managedcluster", "name", req.NamespacedName)
+			return nil
+		}
+		return kverrors.Wrap(err, "failed to lookup matching managedcluster", "name", req.NamespacedName)
+	}
+
+	opts, err := lhandlers.BuildOptions(k, &cluster, &addon, nil)
 	if err != nil {
 		ll.Error(err, "failed to buildOptions managedclusteraddon")
 		return kverrors.Wrap(err, "failed to buildOptions managedclusteraddon", "name", req.NamespacedName)
