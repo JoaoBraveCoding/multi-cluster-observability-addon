@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	addonapiv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
+	workv1 "open-cluster-management.io/api/work/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -60,7 +61,10 @@ func (r *WatcherReconciler) enqueueForClusterSpecificResource() handler.EventHan
 	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
 		key := client.ObjectKey{Name: "multicluster-observability-addon", Namespace: obj.GetNamespace()}
 		addon := &addonapiv1alpha1.ManagedClusterAddOn{}
-		if err := r.Client.Get(ctx, key, addon); err != nil && !apierrors.IsNotFound(err) {
+		if err := r.Client.Get(ctx, key, addon); err != nil {
+			if apierrors.IsNotFound(err) {
+				return nil
+			}
 			r.Log.Error(err, "Error getting managedclusteraddon resources in event handler")
 			return nil
 		}
@@ -77,13 +81,13 @@ func (r *WatcherReconciler) enqueueForClusterSpecificResource() handler.EventHan
 
 func (r *WatcherReconciler) enqueueForClusterWideResource() handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
-		addonList := &addonapiv1alpha1.ManagedClusterAddOnList{}
-		if err := r.Client.List(ctx, addonList, &client.ListOptions{
+		workList := &workv1.ManifestWorkList{}
+		if err := r.Client.List(ctx, workList, &client.ListOptions{
 			LabelSelector: labels.SelectorFromSet(labels.Set{
 				"open-cluster-management.io/addon-name": "multicluster-observability-addon",
 			}),
 		}); err != nil {
-			r.Log.Error(err, "Error listing managedclusteraddon resources in event handler")
+			r.Log.Error(err, "Error listing manifestwork resources in event handler")
 			return nil
 		}
 
@@ -106,16 +110,16 @@ func (r *WatcherReconciler) enqueueForClusterWideResource() handler.EventHandler
 		}
 
 		var requests []reconcile.Request
-		for _, addon := range addonList.Items {
-			_, installed := clustersInClusterSet[addon.Namespace]
+		for _, work := range workList.Items {
+			_, installed := clustersInClusterSet[work.Namespace]
 			if clustersetExists && !installed {
 				continue
 			}
 
 			requests = append(requests, reconcile.Request{
 				NamespacedName: types.NamespacedName{
-					Namespace: addon.Namespace,
-					Name:      addon.Name,
+					Namespace: work.Namespace,
+					Name:      "multicluster-observability-addon",
 				},
 			})
 		}

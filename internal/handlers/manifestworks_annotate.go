@@ -11,7 +11,6 @@ import (
 	"github.com/rhobs/multicluster-observability-addon/internal/manifests"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"
 	addonapiv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
@@ -51,15 +50,15 @@ func UpdateAnnotationOnManifestWorks(ctx context.Context, log logr.Logger, req c
 		return nil
 	}
 
+	key := client.ObjectKey{Name: req.Namespace, Namespace: ""}
 	var cluster clusterv1.ManagedCluster
-	if err := k.Get(ctx, types.NamespacedName{
-		Name: req.Name,
-	}, &cluster); err != nil {
+	if err := k.Get(ctx, key, &cluster); err != nil {
 		if apierrors.IsNotFound(err) {
 			// maybe the user deleted it before we could react? Either way this isn't an issue
 			ll.Error(err, "could not find matching managedcluster", "name", req.NamespacedName)
 			return nil
 		}
+		klog.Error(err)
 		return kverrors.Wrap(err, "failed to lookup matching managedcluster", "name", req.NamespacedName)
 	}
 
