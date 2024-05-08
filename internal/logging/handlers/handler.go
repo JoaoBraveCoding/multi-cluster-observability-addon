@@ -22,7 +22,7 @@ func BuildOptions(k8s client.Client, cluster *clusterv1.ManagedCluster, mcAddon 
 		AddOnDeploymentConfig: adoc,
 	}
 
-	clusterset := cluster.Annotations["cluster.open-cluster-management.io/clusterset"]
+	clusterset := cluster.Labels["cluster.open-cluster-management.io/clusterset"]
 
 	var clfList loggingv1.ClusterLogForwarderList
 	if err := k8s.List(context.Background(), &clfList, &client.ListOptions{
