@@ -6,9 +6,11 @@ import (
 
 	otelv1alpha1 "github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 	loggingv1 "github.com/openshift/cluster-logging-operator/api/observability/v1"
+	clusterlifecycleconstants "github.com/stolostron/cluster-lifecycle-api/constants"
 	"open-cluster-management.io/addon-framework/pkg/agent"
 	"open-cluster-management.io/addon-framework/pkg/utils"
 	addonapiv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	workv1 "open-cluster-management.io/api/work/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -42,6 +44,14 @@ func GetObjectKeys(configRef []addonapiv1alpha1.ConfigReference, group, resource
 		})
 	}
 	return keys
+}
+
+func IsHubCluster(cluster *clusterv1.ManagedCluster) bool {
+	val, ok := cluster.Labels[clusterlifecycleconstants.SelfManagedClusterLabelKey]
+	if !ok {
+		return false
+	}
+	return val == "true"
 }
 
 // AgentHealthProber returns a HealthProber struct that contains the necessary

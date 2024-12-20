@@ -41,7 +41,7 @@ func Test_Mcoa_Disabled(t *testing.T) {
 	}{
 
 		{
-			name: "ManagedCluster with correct labels but no configuration",
+			name: "ManagedCluster with correct labels configuration",
 			managedClusterLabels: map[string]string{
 				"vendor": "OpenShift",
 			},
